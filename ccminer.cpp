@@ -1718,10 +1718,10 @@ static bool gbt_work_decode_mtp(const json_t *val, struct work *work)
 			applog(LOG_ERR, "JSON invalid coinbasevalue");
 			goto out;
 		}
-		mpay = json_object_get(val,"znode_payments_started");
+		mpay = json_object_get(val,"jnode_payments_started");
 //		mpay = false;
 		if (mpay) {
-		mnval = json_object_get(val, "znode");
+		mnval = json_object_get(val, "jnode");
 			mnamount = json_object_get(mnval,"amount");
 			mnaddy = json_object_get(mnval, "payee");
 			mnscript = json_object_get(mnval, "script");
@@ -1750,7 +1750,7 @@ static bool gbt_work_decode_mtp(const json_t *val, struct work *work)
 		le32enc((uint32_t *)(cbtx + cbtx_size), 0xffffffff); // sequence /
 		cbtx_size += 4;
 		
-		cbtx[cbtx_size++] = (mpay && json_integer_value(mnamount)!=0)? 7:6; // out-counter /
+		cbtx[cbtx_size++] = (mpay && json_integer_value(mnamount)!=0)? 5:4; // out-counter /
 
 		le32enc((uint32_t *)(cbtx + cbtx_size), (uint32_t)cbvalue); // value /
 		le32enc((uint32_t *)(cbtx + cbtx_size + 4), cbvalue >> 32);
@@ -1778,10 +1778,44 @@ static bool gbt_work_decode_mtp(const json_t *val, struct work *work)
 		char coinb7[90] = { 0 };
 		char script_payee[1024];
 
+		int endDevfeeblock = 416666;
+		int mnStartBlock = 8670;
+
 
 		  // for mainnet
+		if (work->height < endDevfeeblock ) {
+			if (work->height < mnStartBlock)
+			{
+				base58_decode("jbbQqV4axNmeAwTt3drZJm3c8EDKoMfRdc", script_payee);
+				job_pack_tx(coinb1, 700000000, script_payee);
 
-		base58_decode("aCAgTPgtYcA4EysU4UKC86EQd5cTtHtCcr", script_payee);
+				base58_decode("jUXjDMj8onZr57jhdL4bdv6odDbdE1w38e", script_payee);
+				job_pack_tx(coinb2, 500000000, script_payee);
+
+				base58_decode("jHvNSpS4oHPoLyk9yKwGm6bR4rmrbMYx9x", script_payee);
+				job_pack_tx(coinb3, 300000000, script_payee);
+			} else if (work->height >= mnStartBlock){
+				base58_decode("jbbQqV4axNmeAwTt3drZJm3c8EDKoMfRdc", script_payee);
+				job_pack_tx(coinb1, 400000000, script_payee);
+
+				base58_decode("jUXjDMj8onZr57jhdL4bdv6odDbdE1w38e", script_payee);
+				job_pack_tx(coinb2, 200000000, script_payee);
+
+				base58_decode("jHvNSpS4oHPoLyk9yKwGm6bR4rmrbMYx9x", script_payee);
+				job_pack_tx(coinb3, 150000000, script_payee);
+			}
+		} else {
+			base58_decode("jbbQqV4axNmeAwTt3drZJm3c8EDKoMfRdc", script_payee);
+			job_pack_tx(coinb1, 000000000, script_payee);
+
+			base58_decode("jUXjDMj8onZr57jhdL4bdv6odDbdE1w38e", script_payee);
+			job_pack_tx(coinb2, 000000000, script_payee);
+
+			base58_decode("jHvNSpS4oHPoLyk9yKwGm6bR4rmrbMYx9x", script_payee);
+			job_pack_tx(coinb3, 000000000, script_payee);
+		}
+
+/*		base58_decode("aCAgTPgtYcA4EysU4UKC86EQd5cTtHtCcr", script_payee);
 		job_pack_tx(coinb1, 50000000, script_payee);
 
 		base58_decode("aHu897ivzmeFuLNB6956X6gyGeVNHUBRgD", script_payee);
@@ -1796,7 +1830,7 @@ static bool gbt_work_decode_mtp(const json_t *val, struct work *work)
 		base58_decode("a1kCCGddf5pMXSipLVD9hBG2MGGVNaJ15U", script_payee);
 		job_pack_tx(coinb5, 50000000, script_payee);
 
-/*		
+		
 		// for testnet with znode payment
 		base58_decode("TDk19wPKYq91i18qmY6U9FeTdTxwPeSveo", script_payee);
 		job_pack_tx(coinb1, 50000000, script_payee);
@@ -1837,12 +1871,12 @@ static bool gbt_work_decode_mtp(const json_t *val, struct work *work)
 		hex2bin(cbtx + cbtx_size, coinb3, strlen(coinb3));
 		cbtx_size = cbtx_size + (int)((strlen(coinb3)) / 2);
 
-		hex2bin(cbtx + cbtx_size, coinb4, strlen(coinb4));
+	/*	hex2bin(cbtx + cbtx_size, coinb4, strlen(coinb4));
 		cbtx_size = cbtx_size + (int)((strlen(coinb4)) / 2);
 
 		hex2bin(cbtx + cbtx_size, coinb5, strlen(coinb5));
 		cbtx_size = cbtx_size + (int)((strlen(coinb5)) / 2);
-
+	*/
 		hex2bin(cbtx + cbtx_size, coinb6, strlen(coinb6));
 		cbtx_size = cbtx_size + (int)((strlen(coinb6)) / 2);
 		
